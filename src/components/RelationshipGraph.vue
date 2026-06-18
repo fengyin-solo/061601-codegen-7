@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useGameStore } from '../stores/gameStore'
 import gameConfig from '../config/gameConfig'
 import {
@@ -10,8 +10,8 @@ import {
   formatUnlockCondition
 } from '../utils/gameUtils'
 
-const props = defineProps<{
-  close: () => void
+const emit = defineEmits<{
+  (e: 'close'): void
 }>()
 
 const gameStore = useGameStore()
@@ -85,17 +85,35 @@ function getRelationshipMidpoint(rel: typeof characterRelationships.value[0]) {
     y: (pos1.y + pos2.y) / 2
   }
 }
+
+function handleClose() {
+  emit('close')
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    handleClose()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="props.close()">
-    <div class="modal-content relationship-modal">
+  <div class="modal-overlay" @click.self="handleClose()">
+    <div class="modal-content relationship-modal" @click.stop>
       <div class="modal-header">
         <h2 class="modal-title">
           <span class="title-icon">🕸️</span>
           角色关系图谱
         </h2>
-        <button class="close-btn" @click="props.close()">✕</button>
+        <button class="close-btn" @click="handleClose()">✕</button>
       </div>
 
       <div class="tabs-bar">
@@ -112,7 +130,7 @@ function getRelationshipMidpoint(rel: typeof characterRelationships.value[0]) {
       </div>
 
       <div class="tab-content">
-        <div v-if="activeTab === 'stages'" class="stages-panel animate-fade-in">
+        <div v-if="activeTab === 'stages'" :key="'stages'" class="stages-panel animate-fade-in">
           <div class="panel-desc">共 {{ sortedStages.length }} 个好感阶段，提升好感解锁更多内容</div>
 
           <div class="stages-list">
@@ -184,7 +202,7 @@ function getRelationshipMidpoint(rel: typeof characterRelationships.value[0]) {
           </div>
         </div>
 
-        <div v-if="activeTab === 'relationships'" class="relationships-panel animate-fade-in">
+        <div v-if="activeTab === 'relationships'" :key="'relationships'" class="relationships-panel animate-fade-in">
           <div class="panel-desc">角色之间的关系网络，注意处理好各方关系</div>
 
           <div class="graph-container">
@@ -263,7 +281,7 @@ function getRelationshipMidpoint(rel: typeof characterRelationships.value[0]) {
           </div>
         </div>
 
-        <div v-if="activeTab === 'conflicts'" class="conflicts-panel animate-fade-in">
+        <div v-if="activeTab === 'conflicts'" :key="'conflicts'" class="conflicts-panel animate-fade-in">
           <div class="conflicts-stats">
             <div class="stat-item">
               <span class="stat-num active">{{ gameStore.activeConflicts.length }}</span>
@@ -327,7 +345,7 @@ function getRelationshipMidpoint(rel: typeof characterRelationships.value[0]) {
           </div>
         </div>
 
-        <div v-if="activeTab === 'story'" class="story-panel animate-fade-in">
+        <div v-if="activeTab === 'story'" :key="'story'" class="story-panel animate-fade-in">
           <div class="story-progress-bar">
             <div class="progress-info">
               <span>剧情解锁进度</span>
