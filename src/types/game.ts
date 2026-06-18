@@ -83,6 +83,60 @@ export interface ActionConfig {
   energyCost: number
 }
 
+export interface AffinityStage {
+  name: string
+  minAffinity: number
+  maxAffinity: number
+  description: string
+  icon: string
+  color: string
+  privileges: string[]
+}
+
+export interface CharacterRelationship {
+  characterId1: string
+  characterId2: string
+  type: 'friend' | 'rival' | 'sister' | 'colleague' | 'stranger'
+  label: string
+  description: string
+  conflictEvents?: string[]
+}
+
+export interface ConflictImpact {
+  eventId: string
+  title: string
+  affectedCharacters: string[]
+  maxAffinityPenalty: number
+  maxMoodPenalty: number
+  resolutionHint: string
+}
+
+export interface StoryUnlockCondition {
+  id: string
+  title: string
+  description: string
+  type: 'affinity' | 'event' | 'flag' | 'multi' | 'day'
+  targetCharacterId?: string
+  requiredAffinity?: number
+  requiredEventId?: string
+  requiredFlag?: string
+  requiredDay?: number
+  requiredConditions?: {
+    type: 'affinity' | 'event' | 'flag' | 'day'
+    characterId?: string
+    value: number | string
+  }[]
+  reward?: string
+  unlocked: boolean
+}
+
+export interface RelationshipGraphConfig {
+  affinityStages: AffinityStage[]
+  relationships: CharacterRelationship[]
+  conflicts: ConflictImpact[]
+  storyUnlocks: StoryUnlockCondition[]
+}
+
 export interface GameConfig {
   title: string
   initialResources: number
@@ -101,4 +155,5 @@ export interface GameConfig {
   events: GameEventConfig[]
   actions: ActionConfig[]
   workRewards: { min: number; max: number }
+  relationshipGraph: RelationshipGraphConfig
 }

@@ -6,6 +6,7 @@ const emit = defineEmits<{
   (e: 'toggle-save'): void
   (e: 'toggle-cards'): void
   (e: 'toggle-history'): void
+  (e: 'toggle-graph'): void
   (e: 'toggle-theme'): void
   (e: 'reset'): void
 }>()
@@ -40,6 +41,9 @@ const gameStore = useGameStore()
     </div>
 
     <div class="toolbar">
+      <button class="toolbar-btn" @click="emit('toggle-graph')" title="关系图谱">
+        🕸️
+      </button>
       <button class="toolbar-btn" @click="emit('toggle-cards')" title="卡牌收藏">
         🎴
       </button>

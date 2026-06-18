@@ -11,7 +11,9 @@ import {
   isGiftDisliked,
   getTimeLabel,
   getNextTimeSlot,
-  getMoodLabel
+  getMoodLabel,
+  checkStoryUnlockCondition,
+  getAffinityStageDetail
 } from '../utils/gameUtils'
 
 export interface CharacterState {
@@ -80,6 +82,51 @@ export const useGameStore = defineStore('game', () => {
   const currentCharacterConfig = computed(() =>
     gameConfig.characters.find(c => c.id === selectedCharacterId.value) || null
   )
+
+  const storyUnlocksWithStatus = computed(() => {
+    return gameConfig.relationshipGraph.storyUnlocks.map(unlock => ({
+      ...unlock,
+      unlocked: checkStoryUnlockCondition(
+        unlock,
+        day.value,
+        characters.value,
+        triggeredEvents.value,
+        flags.value
+      )
+    }))
+  })
+
+  const unlockedStoryCount = computed(() =>
+    storyUnlocksWithStatus.value.filter(s => s.unlocked).length
+  )
+
+  const totalStoryCount = computed(() =>
+    gameConfig.relationshipGraph.storyUnlocks.length
+  )
+
+  const charactersWithRelationships = computed(() => {
+    return characters.value.map(charState => {
+      const config = gameConfig.characters.find(c => c.id === charState.id)
+      const stage = getAffinityStageDetail(charState.affinity, gameConfig)
+      return {
+        state: charState,
+        config,
+        stage
+      }
+    }).filter(item => item.config)
+  })
+
+  const activeConflicts = computed(() => {
+    return gameConfig.relationshipGraph.conflicts.filter(
+      conflict => triggeredEvents.value.includes(conflict.eventId)
+    )
+  })
+
+  const pendingConflicts = computed(() => {
+    return gameConfig.relationshipGraph.conflicts.filter(
+      conflict => !triggeredEvents.value.includes(conflict.eventId)
+    )
+  })
 
   function addLog(type: LogEntry['type'], message: string, characterId?: string) {
     logs.value.push({
@@ -470,6 +517,12 @@ export const useGameStore = defineStore('game', () => {
     currentEvent,
     showEventModal,
     darkMode,
+    storyUnlocksWithStatus,
+    unlockedStoryCount,
+    totalStoryCount,
+    charactersWithRelationships,
+    activeConflicts,
+    pendingConflicts,
     addLog,
     saveHistory,
     rollbackToStep,

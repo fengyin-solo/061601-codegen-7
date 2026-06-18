@@ -305,7 +305,269 @@ export const gameConfig: GameConfig = {
     { type: 'work', name: '打工', icon: '💼', description: '辛苦工作赚取代币', energyCost: 2 }
   ],
 
-  workRewards: { min: 15, max: 35 }
+  workRewards: { min: 15, max: 35 },
+
+  relationshipGraph: {
+    affinityStages: [
+      {
+        name: '陌生',
+        minAffinity: -50,
+        maxAffinity: -1,
+        description: '关系紧张，需要付出更多努力才能改善',
+        icon: '💔',
+        color: '#64748b',
+        privileges: ['可以进行基本互动']
+      },
+      {
+        name: '相识',
+        minAffinity: 0,
+        maxAffinity: 19,
+        description: '刚刚认识，还需要更多了解',
+        icon: '👋',
+        color: '#94a3b8',
+        privileges: ['可以聊天', '可以送礼']
+      },
+      {
+        name: '朋友',
+        minAffinity: 20,
+        maxAffinity: 39,
+        description: '成为了普通朋友，开始有默契',
+        icon: '🤝',
+        color: '#fbbf24',
+        privileges: ['解锁稀有卡牌机会', '聊天加成提升']
+      },
+      {
+        name: '好友',
+        minAffinity: 40,
+        maxAffinity: 59,
+        description: '关系亲密的好朋友，彼此信任',
+        icon: '💕',
+        color: '#fb923c',
+        privileges: ['解锁稀有卡牌', '解锁专属剧情事件', '送礼加成提升']
+      },
+      {
+        name: '亲密',
+        minAffinity: 60,
+        maxAffinity: 79,
+        description: '超越普通朋友的暧昧关系',
+        icon: '💗',
+        color: '#f472b6',
+        privileges: ['解锁史诗卡牌', '解锁浪漫事件', '特殊互动选项']
+      },
+      {
+        name: '恋人',
+        minAffinity: 80,
+        maxAffinity: 100,
+        description: '心心相印的恋人关系',
+        icon: '💝',
+        color: '#ec4899',
+        privileges: ['解锁传说卡牌', '解锁告白结局', '全部特权']
+      }
+    ],
+
+    relationships: [
+      {
+        characterId1: 'linxiaoyu',
+        characterId2: 'sufei',
+        type: 'rival',
+        label: '情敌',
+        description: '两人都对你有好感，选择其中一人会让另一人失落',
+        conflictEvents: ['conflict_1']
+      },
+      {
+        characterId1: 'linxiaoyu',
+        characterId2: 'yeqing',
+        type: 'stranger',
+        label: '陌生人',
+        description: '小雨对神秘的叶青感到好奇，但还不熟悉'
+      },
+      {
+        characterId1: 'sufei',
+        characterId2: 'yeqing',
+        type: 'stranger',
+        label: '陌生人',
+        description: '苏菲觉得叶青有些奇怪，但没什么交集'
+      }
+    ],
+
+    conflicts: [
+      {
+        eventId: 'conflict_1',
+        title: '两人的邀约',
+        affectedCharacters: ['linxiaoyu', 'sufei'],
+        maxAffinityPenalty: 8,
+        maxMoodPenalty: 10,
+        resolutionHint: '事后通过送礼或聊天安抚被拒绝的一方可以弥补关系'
+      },
+      {
+        eventId: 'mysterious_girl',
+        title: '神秘的转学生',
+        affectedCharacters: ['linxiaoyu', 'sufei', 'yeqing'],
+        maxAffinityPenalty: 3,
+        maxMoodPenalty: 0,
+        resolutionHint: '主动和叶青搭话会引起其他两人的轻微嫉妒'
+      },
+      {
+        eventId: 'rainy_day_1',
+        title: '突如其来的暴雨',
+        affectedCharacters: ['linxiaoyu'],
+        maxAffinityPenalty: 5,
+        maxMoodPenalty: 10,
+        resolutionHint: '不要假装没看到，哪怕只是陪她等雨停也好'
+      },
+      {
+        eventId: 'cafe_late_night',
+        title: '深夜咖啡馆',
+        affectedCharacters: ['sufei'],
+        maxAffinityPenalty: 3,
+        maxMoodPenalty: 0,
+        resolutionHint: '疲惫时的陪伴最让人暖心'
+      },
+      {
+        eventId: 'birthday_surprise_1',
+        title: '小雨的生日',
+        affectedCharacters: ['linxiaoyu'],
+        maxAffinityPenalty: 10,
+        maxMoodPenalty: 20,
+        resolutionHint: '生日是最重要的日子，绝对不要忘记！'
+      }
+    ],
+
+    storyUnlocks: [
+      {
+        id: 'unlock_linxiaoyu_affinity_20',
+        title: '友谊的开始',
+        description: '与林小雨成为朋友，解锁更多互动话题',
+        type: 'affinity',
+        targetCharacterId: 'linxiaoyu',
+        requiredAffinity: 20,
+        reward: '解锁「花田中」稀有卡牌前置条件',
+        unlocked: false
+      },
+      {
+        id: 'unlock_linxiaoyu_affinity_40',
+        title: '雨中的羁绊',
+        description: '与林小雨好感度达到40，触发雨中撑伞事件',
+        type: 'affinity',
+        targetCharacterId: 'linxiaoyu',
+        requiredAffinity: 40,
+        reward: '获得「花田中」稀有卡牌 🌻',
+        unlocked: false
+      },
+      {
+        id: 'unlock_linxiaoyu_affinity_70',
+        title: '心动瞬间',
+        description: '与林小雨好感度达到70，进入亲密阶段',
+        type: 'affinity',
+        targetCharacterId: 'linxiaoyu',
+        requiredAffinity: 70,
+        reward: '获得「雨中伞」史诗卡牌 ☂️',
+        unlocked: false
+      },
+      {
+        id: 'unlock_linxiaoyu_affinity_100',
+        title: '樱花树下的告白',
+        description: '与林小雨好感度达到满值，解锁完美结局',
+        type: 'affinity',
+        targetCharacterId: 'linxiaoyu',
+        requiredAffinity: 100,
+        reward: '获得「告白」传说卡牌 💝 + 小雨结局',
+        unlocked: false
+      },
+      {
+        id: 'unlock_sufei_affinity_20',
+        title: '熟客待遇',
+        description: '与苏菲成为朋友，咖啡馆有专属座位',
+        type: 'affinity',
+        targetCharacterId: 'sufei',
+        requiredAffinity: 20,
+        reward: '解锁「烘焙时光」稀有卡牌前置条件',
+        unlocked: false
+      },
+      {
+        id: 'unlock_sufei_affinity_40',
+        title: '甜蜜烘焙',
+        description: '与苏菲好感度达到40，解锁烘焙教学事件',
+        type: 'affinity',
+        targetCharacterId: 'sufei',
+        requiredAffinity: 40,
+        reward: '获得「烘焙时光」稀有卡牌 🧁',
+        unlocked: false
+      },
+      {
+        id: 'unlock_sufei_affinity_70',
+        title: '深夜玩伴',
+        description: '与苏菲好感度达到70，进入亲密阶段',
+        type: 'affinity',
+        targetCharacterId: 'sufei',
+        requiredAffinity: 70,
+        reward: '获得「深夜游戏」史诗卡牌 🎮',
+        unlocked: false
+      },
+      {
+        id: 'unlock_sufei_affinity_100',
+        title: '夕阳下的吻',
+        description: '与苏菲好感度达到满值，解锁完美结局',
+        type: 'affinity',
+        targetCharacterId: 'sufei',
+        requiredAffinity: 100,
+        reward: '获得「夕阳下的吻」传说卡牌 🌅 + 苏菲结局',
+        unlocked: false
+      },
+      {
+        id: 'unlock_yeqing',
+        title: '月下邂逅',
+        description: '与至少一位角色好感度达到40后，在第7天解锁神秘角色叶青',
+        type: 'multi',
+        requiredConditions: [
+          { type: 'day', value: 7 },
+          { type: 'affinity', characterId: 'linxiaoyu', value: 40 }
+        ],
+        reward: '解锁隐藏角色「叶青」🌙',
+        unlocked: false
+      },
+      {
+        id: 'unlock_yeqing_affinity_40',
+        title: '琴音缭绕',
+        description: '与叶青好感度达到40，解锁钢琴演奏剧情',
+        type: 'affinity',
+        targetCharacterId: 'yeqing',
+        requiredAffinity: 40,
+        reward: '获得「琴音缭绕」稀有卡牌 🎹',
+        unlocked: false
+      },
+      {
+        id: 'trigger_event_intro_linxiaoyu',
+        title: '图书馆的邂逅',
+        description: '在第1天早晨自动触发与林小雨的初遇',
+        type: 'event',
+        requiredEventId: 'intro_linxiaoyu',
+        reward: '获得「图书馆的邂逅」普通卡牌 📖',
+        unlocked: false
+      },
+      {
+        id: 'trigger_event_intro_sufei',
+        title: '咖啡馆的相遇',
+        description: '在第1-2天下午触发与苏菲的初遇',
+        type: 'event',
+        requiredEventId: 'intro_sufei',
+        reward: '获得「咖啡馆的相遇」普通卡牌 ☕',
+        unlocked: false
+      },
+      {
+        id: 'trigger_event_birthday',
+        title: '小雨的生日惊喜',
+        description: '第14天好感度达标后触发生日事件',
+        type: 'multi',
+        requiredConditions: [
+          { type: 'day', value: 14 },
+          { type: 'affinity', characterId: 'linxiaoyu', value: 50 }
+        ],
+        reward: '生日当天好感度大幅提升机会',
+        unlocked: false
+      }
+    ]
+  }
 }
 
 export default gameConfig

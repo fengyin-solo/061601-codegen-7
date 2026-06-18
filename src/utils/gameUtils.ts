@@ -1,4 +1,4 @@
-import type { TimeOfDay, MoodLevel, GameConfig, CharacterConfig } from '../types/game'
+import type { TimeOfDay, MoodLevel, GameConfig, CharacterConfig, AffinityStage, StoryUnlockCondition, CharacterState } from '../types/game'
 
 export function getMoodLevel(mood: number): MoodLevel {
   if (mood >= 80) return 'happy'
@@ -155,4 +155,142 @@ export function calculateGiftAffinity(
   baseChange *= moodMultiplier
 
   return Math.round(baseChange * 10) / 10
+}
+
+export function getAffinityStageDetail(affinity: number, gameConfig: GameConfig): AffinityStage | undefined {
+  return gameConfig.relationshipGraph.affinityStages.find(
+    stage => affinity >= stage.minAffinity && affinity <= stage.maxAffinity
+  )
+}
+
+export function getAffinityStageProgress(affinity: number, stage: AffinityStage): number {
+  const range = stage.maxAffinity - stage.minAffinity
+  if (range <= 0) return 100
+  const progress = ((affinity - stage.minAffinity) / range) * 100
+  return clamp(progress, 0, 100)
+}
+
+export function getNextAffinityStage(
+  affinity: number,
+  gameConfig: GameConfig
+): AffinityStage | undefined {
+  const sortedStages = [...gameConfig.relationshipGraph.affinityStages].sort(
+    (a, b) => a.minAffinity - b.minAffinity
+  )
+  return sortedStages.find(stage => affinity < stage.minAffinity)
+}
+
+export function checkStoryUnlockCondition(
+  condition: StoryUnlockCondition,
+  day: number,
+  characters: CharacterState[],
+  triggeredEvents: string[],
+  flags: string[]
+): boolean {
+  switch (condition.type) {
+    case 'affinity': {
+      if (!condition.targetCharacterId || condition.requiredAffinity === undefined) return false
+      const char = characters.find(c => c.id === condition.targetCharacterId)
+      return !!char && char.unlocked && char.affinity >= condition.requiredAffinity
+    }
+    case 'event': {
+      return condition.requiredEventId !== undefined
+        ? triggeredEvents.includes(condition.requiredEventId)
+        : false
+    }
+    case 'flag': {
+      return condition.requiredFlag !== undefined ? flags.includes(condition.requiredFlag) : false
+    }
+    case 'day': {
+      return condition.requiredDay !== undefined ? day >= condition.requiredDay : false
+    }
+    case 'multi': {
+      if (!condition.requiredConditions || condition.requiredConditions.length === 0) return false
+      return condition.requiredConditions.every(cond => {
+        switch (cond.type) {
+          case 'day':
+            return day >= (cond.value as number)
+          case 'affinity': {
+            const char = characters.find(c => c.id === cond.characterId)
+            return !!char && char.unlocked && char.affinity >= (cond.value as number)
+          }
+          case 'event':
+            return triggeredEvents.includes(cond.value as string)
+          case 'flag':
+            return flags.includes(cond.value as string)
+          default:
+            return false
+        }
+      })
+    }
+    default:
+      return false
+  }
+}
+
+export function getRelationshipTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    friend: '朋友',
+    rival: '情敌',
+    sister: '姐妹',
+    colleague: '同事',
+    stranger: '陌生人'
+  }
+  return labels[type] || '未知'
+}
+
+export function getRelationshipTypeColor(type: string): string {
+  const colors: Record<string, string> = {
+    friend: '#22c55e',
+    rival: '#ef4444',
+    sister: '#f472b6',
+    colleague: '#3b82f6',
+    stranger: '#94a3b8'
+  }
+  return colors[type] || '#94a3b8'
+}
+
+export function formatUnlockCondition(
+  condition: StoryUnlockCondition,
+  gameConfig: GameConfig
+): string {
+  switch (condition.type) {
+    case 'affinity': {
+      const char = gameConfig.characters.find(c => c.id === condition.targetCharacterId)
+      return `与「${char?.name || '???'}」好感度达到 ${condition.requiredAffinity}`
+    }
+    case 'event': {
+      const event = gameConfig.events.find(e => e.id === condition.requiredEventId)
+      return `触发事件「${event?.title || condition.requiredEventId}」`
+    }
+    case 'flag':
+      return `达成条件「${condition.requiredFlag}」`
+    case 'day':
+      return `游戏进度达到第 ${condition.requiredDay} 天`
+    case 'multi': {
+      if (!condition.requiredConditions) return '满足多个条件'
+      return condition.requiredConditions
+        .map(cond => {
+          switch (cond.type) {
+            case 'day':
+              return `第 ${cond.value} 天`
+            case 'affinity': {
+              const char = gameConfig.characters.find(c => c.id === cond.characterId)
+              return `「${char?.name || '???'}」好感度 ${cond.value}`
+            }
+            case 'event': {
+              const event = gameConfig.events.find(e => e.id === (cond.value as string))
+              return `触发「${event?.title || cond.value}」`
+            }
+            case 'flag':
+              return `${cond.value}`
+            default:
+              return '未知条件'
+          }
+        })
+        .join(' + ')
+    }
+    default:
+      return '未知条件'
+  }
 }
